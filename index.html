@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoDA — Irrigation Portal Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F5F7F3;
+    --panel: #FFFFFF;
+    --ink: #1E2B22;
+    --ink-soft: #55645A;
+    --line: #DCE1D6;
+    --vine: #3D5C3A;
+    --vine-soft: #E7EEE3;
+    --water: #2E6E8E;
+    --water-soft: #E4EEF3;
+    --clay: #B5713F;
+    --clay-soft: #F6E9DD;
+    --clay-strong: #9A5A2E;
+    --amber: #B5943F;
+    --amber-soft: #F6EEDD;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    margin:0;
+  }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .shell{ display:flex; min-height:100vh; }
+  .sidebar{
+    width:230px; flex-shrink:0; background:var(--vine); color:#EFF3EC;
+    padding:28px 20px; display:flex; flex-direction:column; gap:36px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:4px; }
+  .brand-mark{
+    width:34px;height:34px; border-radius:8px; background:rgba(255,255,255,0.14);
+    display:flex;align-items:center;justify-content:center; font-family:'Fraunces',serif;
+    font-size:18px; margin-bottom:10px;
+  }
+  .brand-title{ font-family:'Fraunces',serif; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:.01em;}
+  .brand-sub{ font-size:11.5px; color:#C9D6C4; line-height:1.4; margin-top:2px; }
+  nav{ display:flex; flex-direction:column; gap:4px; }
+  .nav-btn{
+    all:unset; cursor:pointer; padding:10px 12px; border-radius:8px; font-size:14px;
+    color:#DCE7D7; display:flex; align-items:center; gap:10px; transition:background .15s ease;
+  }
+  .nav-btn svg{ opacity:0.85; flex-shrink:0; }
+  .nav-btn:hover{ background:rgba(255,255,255,0.08); }
+  .nav-btn.active{ background:rgba(255,255,255,0.16); color:#fff; font-weight:500; }
+  .sidebar-foot{ margin-top:auto; font-size:11px; color:#9FB498; line-height:1.5; }
+
+  .main{ flex:1; padding:36px 44px 60px; max-width:1220px; }
+  .page{ display:none; }
+  .page.active{ display:block; }
+
+  .page-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:28px; gap:20px; flex-wrap:wrap;
+  }
+  .page-head h1{ font-size:28px; color:var(--ink); }
+  .page-head p{ margin:6px 0 0; color:var(--ink-soft); font-size:14.5px; max-width:520px; }
+  .head-actions{ display:flex; gap:10px; }
+
+  .btn{
+    all:unset; cursor:pointer; background:var(--vine); color:#fff; padding:10px 18px;
+    border-radius:8px; font-size:14px; font-weight:500; white-space:nowrap;
+  }
+  .btn:hover{ background:#334F31; }
+  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
+  .btn.ghost:hover{ background:var(--vine-soft); }
+  .btn.small{ padding:7px 13px; font-size:12.5px; }
+  .btn.export{
+    display:inline-flex; align-items:center; gap:6px;
+  }
+
+  .summary-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+  .summary-card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .summary-card .num{ font-family:'Fraunces',serif; font-size:30px; font-weight:600; }
+  .summary-card .label{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .summary-card.warn .num{ color:var(--clay-strong); }
+  .summary-card.ok .num{ color:var(--vine); }
+  .summary-card.info .num{ color:var(--water); }
+
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; margin-bottom:24px; overflow:hidden; }
+  .panel-head{
+    padding:18px 22px 14px; border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .panel-head h2{ font-size:17px; }
+  .panel-head .sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; font-family:'Inter',sans-serif; font-weight:400;}
+  .panel-head-right{ display:flex; align-items:center; gap:10px; }
+
+  .field-row{
+    display:grid; grid-template-columns: 1.5fr 1.7fr 1.4fr 1fr 1.3fr;
+    align-items:center; padding:16px 22px; border-bottom:1px solid var(--line); gap:14px;
+  }
+  .field-row:last-child{ border-bottom:none; }
+  .field-row.header{
+    background:#FAFBF8; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--ink-soft); padding-top:11px; padding-bottom:11px;
+  }
+  .field-name{ font-weight:600; font-size:14.5px; }
+  .field-logger{ font-size:12px; color:var(--ink-soft); margin-top:3px; line-height:1.5; }
+  .readings{ font-size:12.5px; line-height:1.7; }
+  .readings .rlabel{ color:var(--ink-soft); }
+  .readings .range{ color:var(--ink-soft); font-size:11.5px; }
+  .port-mini-row{ display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
+  .port-mini{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:2px 7px; border-radius:5px;
+    background:var(--vine-soft); color:var(--vine);
+  }
+  .port-mini.low{ background:var(--clay-soft); color:var(--clay-strong); }
+  .port-mini.err{ background:#EDEDED; color:#767676; text-decoration:line-through; }
+  .timestamp{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+  .battery-tag{ font-size:11px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; gap:5px;}
+  .battery-tag .b-dot{ width:6px;height:6px;border-radius:50%; background:var(--vine); }
+  .battery-tag.low .b-dot{ background:var(--amber); }
+
+  .gauge-wrap{ width:100%; }
+  .gauge-track{ position:relative; height:8px; border-radius:4px; background:linear-gradient(to right, var(--clay-soft), var(--vine-soft)); margin-bottom:6px; }
+  .gauge-threshold{ position:absolute; top:-3px; width:2px; height:14px; background:var(--ink); }
+  .gauge-current{ position:absolute; top:-4px; width:10px; height:16px; border-radius:3px; transform:translateX(-50%); }
+  .gauge-labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--ink-soft); }
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:99px;
+    font-size:12px; font-weight:500;
+  }
+  .status-pill.needs{ background:var(--clay-soft); color:var(--clay-strong); }
+  .status-pill.ok{ background:var(--vine-soft); color:var(--vine); }
+  .status-pill.nodata{ background:#EDEDED; color:#767676; }
+  .status-pill.partial{ background:var(--amber-soft); color:#8A6416; }
+  .status-pill .dot{ width:6px;height:6px;border-radius:50%; background:currentColor; }
+
+  .action-block{ font-size:13px; }
+  .action-block .amt{ font-weight:600; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .action-block .dur{ color:var(--ink-soft); margin-top:2px; }
+  .action-block .dash{ color:var(--ink-soft); }
+
+  .health-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); }
+  .health-item{ background:var(--panel); padding:18px 22px; }
+  .health-item .h-label{ font-size:12px; color:var(--ink-soft); margin-bottom:6px; }
+  .health-item .h-value{ font-size:14.5px; font-weight:500; display:flex; align-items:center; gap:7px; }
+  .health-item .h-dot{ width:8px;height:8px;border-radius:50%; }
+  .h-dot.green{ background:var(--vine); }
+  .h-dot.amber{ background:var(--clay); }
+
+  .activity-item{ padding:14px 22px; border-bottom:1px solid var(--line); display:flex; gap:14px; font-size:13.5px; }
+  .activity-item:last-child{ border-bottom:none; }
+  .activity-time{
+    color:var(--ink-soft); font-size:12px; white-space:nowrap; padding-top:1px;
+    width:110px; flex-shrink:0; font-family:'IBM Plex Mono',monospace;
+  }
+  .activity-text b{ font-weight:600; }
+  .activity-text .to{ color:var(--ink-soft); }
+
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; padding:22px; }
+  .field-block{ grid-column: span 1; }
+  .field-block.wide{ grid-column: span 2; }
+  .field-block label{ display:block; font-size:12.5px; font-weight:500; color:var(--ink-soft); margin-bottom:6px; }
+  .field-block input, .field-block select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px;
+    font-family:'Inter',sans-serif; background:#FCFDFB; color:var(--ink);
+  }
+  .field-block .hint{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; }
+
+  /* Logger cards inside field form */
+  .logger-list{ display:flex; flex-direction:column; gap:12px; }
+  .logger-card{
+    border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:#FCFDFB;
+  }
+  .logger-card-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+  .logger-card-top input{ font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:500; }
+  .logger-card-row{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; }
+  .logger-card-row .sub-block{ flex:1; min-width:180px; }
+  .logger-card-row label{ font-size:11.5px; color:var(--ink-soft); display:block; margin-bottom:6px; }
+  .port-chip-box{
+    display:flex; flex-wrap:wrap; align-items:center; gap:6px; border:1px solid var(--line);
+    border-radius:7px; padding:7px 8px; background:#fff; min-height:38px;
+  }
+  .port-chip{
+    display:inline-flex; align-items:center; gap:5px; background:var(--vine-soft); color:var(--vine);
+    padding:4px 9px; border-radius:99px; font-size:12px; font-family:'IBM Plex Mono',monospace;
+  }
+  .port-chip button{ all:unset; cursor:pointer; opacity:.6; line-height:0; }
+  .port-chip button:hover{ opacity:1; }
+  .port-chip-box input{
+    border:none; outline:none; background:transparent; flex:1; min-width:60px; font-size:12.5px; padding:3px 2px;
+  }
+  .mode-select{ width:auto; min-width:190px; }
+  .remove-logger{ all:unset; cursor:pointer; font-size:12px; color:var(--clay-strong); padding:5px 9px; border-radius:6px; }
+  .remove-logger:hover{ background:var(--clay-soft); }
+  .add-logger-btn{
+    all:unset; cursor:pointer; font-size:13px; color:var(--vine); padding:9px 12px; border:1px dashed var(--line);
+    border-radius:8px; text-align:center; margin-top:4px;
+  }
+  .add-logger-btn:hover{ background:var(--vine-soft); border-color:var(--vine); }
+
+  .form-actions{ padding:16px 22px; border-top:1px solid var(--line); display:flex; gap:10px; justify-content:flex-end; }
+
+  .list-row{ display:flex; justify-content:space-between; align-items:center; padding:14px 22px; border-bottom:1px solid var(--line); gap:14px; }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row .li-name{ font-weight:600; font-size:14px; }
+  .list-row .li-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:3px; line-height:1.6; }
+  .li-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .icon-btn{ all:unset; cursor:pointer; font-size:12.5px; color:var(--ink-soft); padding:6px 10px; border-radius:6px; }
+  .icon-btn:hover{ background:var(--vine-soft); color:var(--vine); }
+  .icon-btn.danger:hover{ background:var(--clay-soft); color:var(--clay-strong); }
+
+  .email-chip{
+    display:inline-flex; align-items:center; gap:8px; background:var(--water-soft); color:var(--water);
+    padding:7px 12px; border-radius:99px; font-size:13px; font-family:'IBM Plex Mono',monospace; margin:4px 6px 4px 0;
+  }
+  .email-chip button{ all:unset; cursor:pointer; line-height:0; opacity:0.6; }
+  .email-chip button:hover{ opacity:1; }
+
+  .note-box{
+    background:var(--water-soft); border:1px solid #CADFE8; border-radius:10px; padding:14px 16px;
+    font-size:13px; color:#1F4A5E; line-height:1.55; margin-bottom:24px;
+  }
+  .note-box b{ color:var(--water); }
+  .note-box + .note-box{ margin-top:-14px; }
+
+  .legend{ display:flex; gap:22px; font-size:12px; color:var(--ink-soft); margin-top:2px; flex-wrap:wrap; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .legend .sw{ width:9px;height:9px;border-radius:2px; }
+
+  /* ---- Weather forecast page ---- */
+  .location-select-row{ display:flex; align-items:center; gap:12px; padding:18px 22px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .location-select-row label{ font-size:12.5px; color:var(--ink-soft); font-weight:500; }
+  .location-select-row select{ padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px; min-width:200px; background:#FCFDFB; }
+
+  .forecast-strip{ display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--line); }
+  .forecast-day{ background:var(--panel); padding:18px 12px; text-align:center; }
+  .forecast-day .fd-name{ font-size:12px; color:var(--ink-soft); font-weight:500; margin-bottom:10px; }
+  .fd-icon{ width:36px; height:36px; margin:0 auto 10px; }
+  .fd-temps{ font-size:14px; font-weight:600; margin-bottom:4px; }
+  .fd-temps .lo{ color:var(--ink-soft); font-weight:400; }
+  .fd-rain{ font-size:11.5px; color:var(--water); font-weight:500; }
+  .fd-eto{ font-size:10.5px; color:var(--ink-soft); margin-top:8px; font-family:'IBM Plex Mono',monospace; }
+
+  .forecast-panel-note{
+    padding:12px 22px; background:#FAFBF8; border-top:1px solid var(--line);
+    font-size:12px; color:var(--ink-soft);
+  }
+
+  .placeholder-badge{
+    display:inline-flex; align-items:center; gap:6px; background:var(--amber-soft); color:#8A6416;
+    padding:4px 10px; border-radius:99px; font-size:11.5px; font-weight:500;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-title">SoDA</div>
+      <div class="brand-sub">Sustainable &amp; Digital<br>Agriculture Lab</div>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-page="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" data-page="fields">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4 4l16 16M20 4L4 20"/></svg>
+        Manage Fields
+      </button>
+      <button class="nav-btn" data-page="forecast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.6-1.5A5 5 0 0 0 6 19h11.5z"/></svg>
+        Weather Forecast
+      </button>
+      <button class="nav-btn" data-page="alerts">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Alerts &amp; Recipients
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      Data source: ZentraCloud API<br>
+      Checks run every 5 days
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ============ PAGE 1: DASHBOARD ============ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-head">
+        <div>
+          <h1>Field Status</h1>
+          <p>What the system found on the last check, and what it decided each field needs.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn ghost export">⬇ Export CSV</button>
+          <button class="btn ghost">↻ Check now</button>
+        </div>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-card"><div class="num">6</div><div class="label">Fields monitored</div></div>
+        <div class="summary-card warn"><div class="num">2</div><div class="label">Need irrigation</div></div>
+        <div class="summary-card ok"><div class="num">3</div><div class="label">No action needed</div></div>
+        <div class="summary-card info"><div class="num">1</div><div class="label">Sensor issue</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>All fields</h2>
+            <div class="sub">Last check: Aug 5, 2026, 6:00 AM &nbsp;•&nbsp; Next check: Aug 10, 2026</div>
+          </div>
+          <div class="panel-head-right">
+            <div class="legend">
+              <span><span class="sw" style="background:var(--clay)"></span>Below threshold</span>
+              <span><span class="sw" style="background:var(--vine)"></span>Above threshold</span>
+            </div>
+            <button class="btn ghost small export">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        <div class="field-row header">
+          <div>Field</div>
+          <div>Latest readings (VWC, m³/m³)</div>
+          <div>Average vs. threshold</div>
+          <div>Status</div>
+          <div>Recommended action</div>
+        </div>
+
+        <!-- Vineyard -->
+        <div class="field-row">
+          <div>
+            <div class="field-name">Vineyard</div>
+            <div class="field-logger mono">z6-31580 (P1,P3) · z6-30299 (P1,P3)</div>
+          </div>
+          <div class="readings">
+            <div><span class="rlabel">Average:</span> 0.256 <span class="range">(min 0.241 – max 0.268)</span></div>
+            <div class="port-mini-row">
+              <span class="port-mini">P1: 0.268</span>
+              <span class="port-mini">P3: 0.251</span>
+              <span class="port-mini">P1: 0.244</span>
+              <span class="port-mini">P3: 0.241</span>
+            </div>
+            <div class="battery-tag"><span class="b-dot"></span>Batteries OK (2 loggers)</div>
+            <div class="timestamp">Read Aug 5, 6:00 AM</div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-threshold" style="left:38%;"></div><div class="gauge-current" style="left:58%; background:var(--vine);"></div></div>
+            <div class="gauge-labels"><span>Dry (0.18)</span><span>Wet (0.34)</span></div>
+          </div>
+          <div><span class="status-pill ok"><span class="dot"></span>OK</span></div>
+          <div class="action-block"><span class="dash">— No irrigation needed —</span></div>
+        </div>
+
+        <!-- Organic Farm -->
+        <div class="field-row">
+          <div>
+            <div class="field-name">Organic Farm</div>
+            <div class="field-logger mono">z6-31580 (P1,P3) · z6-30299 (P1,P3)</div>
+          </div>
+          <div class="readings">
+            <div><span class="rlabel">Average:</span> 0.221 <span class="range">(min 0.209 – max 0.234)</span></div>
+            <div class="port-mini-row">
+              <span class="port-mini low">P1: 0.209 ⚠</span>
+              <span class="port-mini">P3: 0.234</span>
+              <span class="port-mini low">P1: 0.221 ⚠</span>
+              <span class="port-mini">P3: 0.229</span>
+            </div>
+            <div class="battery-tag"><span class="b-dot"></span>Batteries OK (2 loggers)</div>
+            <div class="timestamp">Read Aug 5, 6:00 AM</div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-threshold" style="left:38%;"></div><div class="gauge-current" style="left:22%; background:var(--clay);"></div></div>
+            <div class="gauge-labels"><span>Dry (0.18)</span><span>Wet (0.34)</span></div>
+          </div>
+          <div><span class="status-pill needs"><span class="dot"></span>Needs water</span></div>
+          <div class="action-block"><div class="amt">≈ 890 L</div><div class="dur">Run for 1.5 hrs</div></div>
+        </div>
+
+        <!-- Lee Farm -->
+        <div class="field-row">
+          <div>
+            <div class="field-name">Lee Farm</div>
+            <div class="field-logger mono">z6-30297 (P2,P4)</div>
+          </div>
+          <div class="readings">
+            <div><span class="rlabel">Average:</span> 0.198 <span class="range">(min 0.191 – max 0.205)</span></div>
+            <div class="port-mini-row">
+              <span class="port-mini low">P2: 0.191 ⚠</span>
+              <span class="port-mini low">P4: 0.205 ⚠</span>
+            </div>
+            <div class="battery-tag"><span class="b-dot"></span>Battery OK (1 logger)</div>
+            <div class="timestamp">Read Aug 5, 6:00 AM</div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-threshold" style="left:38%;"></div><div class="gauge-current" style="left:14%; background:var(--clay);"></div></div>
+            <div class="gauge-labels"><span>Dry (0.18)</span><span>Wet (0.34)</span></div>
+          </div>
+          <div><span class="status-pill needs"><span class="dot"></span>Needs water</span></div>
+          <div class="action-block"><div class="amt">≈ 1,240 L</div><div class="dur">Run for 2.1 hrs</div></div>
+        </div>
+
+        <!-- Blueberry Farm - partial -->
+        <div class="field-row">
+          <div>
+            <div class="field-name">Blueberry Farm</div>
+            <div class="field-logger mono">z6-30512 (P1,P2)</div>
+          </div>
+          <div class="readings">
+            <div><span class="rlabel">Average:</span> 0.244 <span class="range">(1 of 2 ports)</span></div>
+            <div class="port-mini-row">
+              <span class="port-mini">P1: 0.244</span>
+              <span class="port-mini err">P2: ERROR</span>
+            </div>
+            <div class="battery-tag low"><span class="b-dot"></span>Battery low — 18%</div>
+            <div class="timestamp">Read Aug 5, 6:00 AM</div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-threshold" style="left:38%;"></div><div class="gauge-current" style="left:52%; background:var(--vine);"></div></div>
+            <div class="gauge-labels"><span>Dry (0.18)</span><span>Wet (0.34)</span></div>
+          </div>
+          <div><span class="status-pill partial"><span class="dot"></span>Partial data</span></div>
+          <div class="action-block"><span class="dash">— Check port 2 &amp; battery —</span></div>
+        </div>
+
+        <!-- South Farm -->
+        <div class="field-row">
+          <div>
+            <div class="field-name">South Farm</div>
+            <div class="field-logger mono">z6-30601 (P1,P2)</div>
+          </div>
+          <div class="readings">
+            <div><span class="rlabel">Average:</span> 0.271 <span class="range">(min 0.264 – max 0.279)</span></div>
+            <div class="port-mini-row">
+              <span class="port-mini">P1: 0.279</span>
+              <span class="port-mini">P2: 0.264</span>
+            </div>
+            <div class="battery-tag"><span class="b-dot"></span>Battery OK (1 logger)</div>
+            <div class="timestamp">Read Aug 5, 6:00 AM</div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-threshold" style="left:38%;"></div><div class="gauge-current" style="left:66%; background:var(--vine);"></div></div>
+            <div class="gauge-labels"><span>Dry (0.18)</span><span>Wet (0.34)</span></div>
+          </div>
+          <div><span class="status-pill ok"><span class="dot"></span>OK</span></div>
+          <div class="action-block"><span class="dash">— No irrigation needed —</span></div>
+        </div>
+
+        <!-- Bradford Farm -->
+        <div class="field-row">
+          <div>
+            <div class="field-name">Bradford Farm</div>
+            <div class="field-logger mono">z6-30733 (P1)</div>
+          </div>
+          <div class="readings">
+            <div><span class="rlabel">Average:</span> 0.249 <span class="range">(single port)</span></div>
+            <div class="port-mini-row"><span class="port-mini">P1: 0.249</span></div>
+            <div class="battery-tag"><span class="b-dot"></span>Battery OK (1 logger)</div>
+            <div class="timestamp">Read Aug 5, 6:00 AM</div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-threshold" style="left:38%;"></div><div class="gauge-current" style="left:56%; background:var(--vine);"></div></div>
+            <div class="gauge-labels"><span>Dry (0.18)</span><span>Wet (0.34)</span></div>
+          </div>
+          <div><span class="status-pill ok"><span class="dot"></span>OK</span></div>
+          <div class="action-block"><span class="dash">— No irrigation needed —</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>System health</h2><div class="sub">Confirms the automation is actually running</div></div>
+        </div>
+        <div class="health-grid">
+          <div class="health-item"><div class="h-label">Last API pull</div><div class="h-value"><span class="h-dot green"></span>Aug 5, 6:00 AM — succeeded</div></div>
+          <div class="health-item"><div class="h-label">Last calculation run</div><div class="h-value"><span class="h-dot green"></span>Aug 5, 6:06 AM — 6 fields processed</div></div>
+          <div class="health-item"><div class="h-label">Logger issues</div><div class="h-value"><span class="h-dot amber"></span>1 port error, 1 low battery</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Recent alerts</h2><div class="sub">Emails sent to admins in the last check cycle</div></div>
+          <button class="icon-btn" onclick="showPage('alerts')">View all →</button>
+        </div>
+        <div class="activity-item"><div class="activity-time">Aug 5, 6:06 AM</div><div class="activity-text"><b>Irrigation alert</b> for Organic Farm — Port 1 below threshold on both loggers <span class="to">sent to llgpp@missouri.edu, mr6dz@missouri.edu</span></div></div>
+        <div class="activity-item"><div class="activity-time">Aug 5, 6:06 AM</div><div class="activity-text"><b>Irrigation alert</b> for Lee Farm — both ports below threshold <span class="to">sent to llgpp@missouri.edu, mr6dz@missouri.edu</span></div></div>
+        <div class="activity-item"><div class="activity-time">Aug 5, 6:05 AM</div><div class="activity-text"><b>Sensor warning</b> for Blueberry Farm — port 2 error, battery at 18% <span class="to">sent to jasmine.neupane@missouri.edu</span></div></div>
+      </div>
+
+    </div>
+
+    <!-- ============ PAGE 2: MANAGE FIELDS ============ -->
+    <div class="page" id="page-fields">
+      <div class="page-head">
+        <div>
+          <h1>Manage Fields</h1>
+          <p>Connect each field to its sensor loggers, choose which ports to use, and set the threshold.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn ghost export">⬇ Export CSV</button>
+          <button class="btn">+ Add field</button>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <b>What is a threshold?</b> It's the soil moisture value (VWC, m³/m³) below which a field is considered too dry. If any single port drops below this value, the field is flagged — the irrigation amount is then calculated from the average across all included ports.
+      </div>
+      <div class="note-box">
+        <b>Ports per logger?</b> Some loggers have sensors on more than one port. Choose which ports to include (or exclude) per logger — useful if a port is unused, broken, or measuring something you don't want counted.
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Add or edit a field</h2><div class="sub">Example shown for Organic Farm</div></div>
+        </div>
+        <div class="form-grid">
+          <div class="field-block">
+            <label>Field name</label>
+            <input type="text" value="Organic Farm" />
+          </div>
+          <div class="field-block">
+            <label>Trigger threshold (VWC, m³/m³)</label>
+            <input type="text" value="0.229" class="mono" />
+            <div class="hint">Irrigation is recommended when any port drops below this value.</div>
+          </div>
+
+          <div class="field-block wide">
+            <label>Loggers &amp; ports</label>
+            <div class="logger-list">
+
+              <div class="logger-card">
+                <div class="logger-card-top">
+                  <input type="text" value="z6-31580" style="max-width:160px;" />
+                  <button class="remove-logger">Remove logger</button>
+                </div>
+                <div class="logger-card-row">
+                  <div class="sub-block">
+                    <label>Port selection mode</label>
+                    <select class="mode-select">
+                      <option>Include only listed ports</option>
+                      <option>Exclude listed ports</option>
+                    </select>
+                  </div>
+                  <div class="sub-block">
+                    <label>Ports</label>
+                    <div class="port-chip-box">
+                      <span class="port-chip">Port 1 <button>✕</button></span>
+                      <span class="port-chip">Port 3 <button>✕</button></span>
+                      <input type="text" placeholder="Add port #" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="logger-card">
+                <div class="logger-card-top">
+                  <input type="text" value="z6-30299" style="max-width:160px;" />
+                  <button class="remove-logger">Remove logger</button>
+                </div>
+                <div class="logger-card-row">
+                  <div class="sub-block">
+                    <label>Port selection mode</label>
+                    <select class="mode-select">
+                      <option>Include only listed ports</option>
+                      <option>Exclude listed ports</option>
+                    </select>
+                  </div>
+                  <div class="sub-block">
+                    <label>Ports</label>
+                    <div class="port-chip-box">
+                      <span class="port-chip">Port 1 <button>✕</button></span>
+                      <span class="port-chip">Port 3 <button>✕</button></span>
+                      <input type="text" placeholder="Add port #" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="add-logger-btn">+ Add another logger to this field</button>
+            </div>
+            <div class="hint">Readings from all included ports across all loggers are averaged for this field.</div>
+          </div>
+
+          <div class="field-block">
+            <label>Target VWC (field capacity)</label>
+            <input type="text" value="0.32" class="mono" />
+          </div>
+          <div class="field-block">
+            <label>Check frequency</label>
+            <select>
+              <option>Every 5 days (default)</option>
+              <option>Every 3 days</option>
+              <option>Every 7 days</option>
+            </select>
+          </div>
+          <div class="field-block">
+            <label>Soil block volume (m³)</label>
+            <input type="text" value="1.002" class="mono" />
+          </div>
+          <div class="field-block">
+            <label>System flow rate (L/s)</label>
+            <input type="text" value="0.00244" class="mono" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost">Cancel</button>
+          <button class="btn">Save field</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>All fields (6)</h2></div>
+          <button class="btn ghost small export">⬇ Export CSV</button>
+        </div>
+        <div class="list-row">
+          <div><div class="li-name">Vineyard</div><div class="li-sub mono">z6-31580 (P1,P3) · z6-30299 (P1,P3) · Threshold 0.235</div></div>
+          <div class="li-actions"><button class="icon-btn">Edit</button><button class="icon-btn danger">Remove</button></div>
+        </div>
+        <div class="list-row">
+          <div><div class="li-name">Organic Farm</div><div class="li-sub mono">z6-31580 (P1,P3) · z6-30299 (P1,P3) · Threshold 0.229</div></div>
+          <div class="li-actions"><button class="icon-btn">Edit</button><button class="icon-btn danger">Remove</button></div>
+        </div>
+        <div class="list-row">
+          <div><div class="li-name">Lee Farm</div><div class="li-sub mono">z6-30297 (P2,P4) · Threshold 0.210</div></div>
+          <div class="li-actions"><button class="icon-btn">Edit</button><button class="icon-btn danger">Remove</button></div>
+        </div>
+        <div class="list-row">
+          <div><div class="li-name">Blueberry Farm</div><div class="li-sub mono">z6-30512 (P1,P2) · Threshold 0.230</div></div>
+          <div class="li-actions"><button class="icon-btn">Edit</button><button class="icon-btn danger">Remove</button></div>
+        </div>
+        <div class="list-row">
+          <div><div class="li-name">South Farm</div><div class="li-sub mono">z6-30601 (P1,P2) · Threshold 0.240</div></div>
+          <div class="li-actions"><button class="icon-btn">Edit</button><button class="icon-btn danger">Remove</button></div>
+        </div>
+        <div class="list-row">
+          <div><div class="li-name">Bradford Farm</div><div class="li-sub mono">z6-30733 (P1) · Threshold 0.225</div></div>
+          <div class="li-actions"><button class="icon-btn">Edit</button><button class="icon-btn danger">Remove</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 3: WEATHER FORECAST (TEMPLATE) ============ -->
+    <div class="page" id="page-forecast">
+      <div class="page-head">
+        <div>
+          <h1>Weather Forecast</h1>
+          <p>A look ahead for each field's location, to help judge whether an irrigation decision can wait.</p>
+        </div>
+        <span class="placeholder-badge">Template — live forecast data coming soon</span>
+      </div>
+
+      <div class="note-box">
+        <b>What this will do:</b> once connected to a forecast source, this page will show expected rainfall and a daily reference evapotranspiration (ETo) estimate for each field, so a "needs water" alert can be weighed against rain that's already on the way.
+      </div>
+
+      <div class="panel">
+        <div class="location-select-row">
+          <label>Field:</label>
+          <select>
+            <option>Vineyard</option>
+            <option>Organic Farm</option>
+            <option>Lee Farm</option>
+            <option>Blueberry Farm</option>
+            <option>South Farm</option>
+            <option>Bradford Farm</option>
+          </select>
+          <span class="hint mono" style="color:var(--ink-soft); font-size:12px;">38.9472, -92.3286</span>
+        </div>
+
+        <div class="forecast-strip">
+          <div class="forecast-day">
+            <div class="fd-name">Today</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.6"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+            <div class="fd-temps">88° <span class="lo">67°</span></div>
+            <div class="fd-rain">Rain 5%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+          <div class="forecast-day">
+            <div class="fd-name">Thu</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.6"><path d="M6 17a4 4 0 1 1 1-7.9A5 5 0 0 1 17 11a3.5 3.5 0 0 1-.5 7H6z"/></svg>
+            <div class="fd-temps">85° <span class="lo">66°</span></div>
+            <div class="fd-rain">Rain 15%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+          <div class="forecast-day">
+            <div class="fd-name">Fri</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--water)" stroke-width="1.6"><path d="M6 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17 9a3.5 3.5 0 0 1-.5 7H6z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>
+            <div class="fd-temps">79° <span class="lo">64°</span></div>
+            <div class="fd-rain" style="color:var(--water); font-weight:600;">Rain 70%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+          <div class="forecast-day">
+            <div class="fd-name">Sat</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--water)" stroke-width="1.6"><path d="M6 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17 9a3.5 3.5 0 0 1-.5 7H6z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>
+            <div class="fd-temps">75° <span class="lo">62°</span></div>
+            <div class="fd-rain" style="color:var(--water); font-weight:600;">Rain 60%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+          <div class="forecast-day">
+            <div class="fd-name">Sun</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.6"><path d="M6 17a4 4 0 1 1 1-7.9A5 5 0 0 1 17 11a3.5 3.5 0 0 1-.5 7H6z"/></svg>
+            <div class="fd-temps">81° <span class="lo">63°</span></div>
+            <div class="fd-rain">Rain 20%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+          <div class="forecast-day">
+            <div class="fd-name">Mon</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.6"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+            <div class="fd-temps">90° <span class="lo">69°</span></div>
+            <div class="fd-rain">Rain 0%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+          <div class="forecast-day">
+            <div class="fd-name">Tue</div>
+            <svg class="fd-icon" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.6"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+            <div class="fd-temps">91° <span class="lo">70°</span></div>
+            <div class="fd-rain">Rain 0%</div>
+            <div class="fd-eto">ETo: —</div>
+          </div>
+        </div>
+        <div class="forecast-panel-note">ETo values will populate once a forecast source (e.g. Open-Meteo, NOAA NDFD) is connected. Layout and fields shown here are placeholders for review.</div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 4: ALERTS & RECIPIENTS ============ -->
+    <div class="page" id="page-alerts">
+      <div class="page-head">
+        <div>
+          <h1>Alerts &amp; Recipients</h1>
+          <p>Choose who gets emailed when a field needs water, and review what's already been sent.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Admin recipients</h2><div class="sub">Everyone below gets an email when a field crosses its threshold</div></div>
+        </div>
+        <div style="padding:18px 22px;">
+          <span class="email-chip">llgpp@missouri.edu <button>✕</button></span>
+          <span class="email-chip">mr6dz@missouri.edu <button>✕</button></span>
+          <span class="email-chip">jasmine.neupane@missouri.edu <button>✕</button></span>
+        </div>
+        <div class="form-actions" style="justify-content:flex-start; border-top:1px solid var(--line);">
+          <input type="text" placeholder="Add an email address" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px; width:260px;" />
+          <button class="btn ghost">+ Add</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div><h2>Notification rules</h2></div></div>
+        <div class="form-grid" style="grid-template-columns:1fr;">
+          <div class="field-block">
+            <label>Send an alert when</label>
+            <select>
+              <option>Any port crosses its threshold (needs water)</option>
+              <option>Any port crosses its threshold, or a sensor/battery issue occurs</option>
+              <option>Every check, regardless of result</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Alert history</h2><div class="sub">Confirms what was sent, to whom, and when</div></div>
+          <button class="btn ghost small export">⬇ Export CSV</button>
+        </div>
+        <div class="activity-item"><div class="activity-time">Aug 5, 6:06 AM</div><div class="activity-text"><b>Irrigation alert</b> — Organic Farm needs ≈890 L, run 1.5 hrs <span class="to">→ llgpp@missouri.edu, mr6dz@missouri.edu</span></div></div>
+        <div class="activity-item"><div class="activity-time">Aug 5, 6:06 AM</div><div class="activity-text"><b>Irrigation alert</b> — Lee Farm needs ≈1,240 L, run 2.1 hrs <span class="to">→ llgpp@missouri.edu, mr6dz@missouri.edu</span></div></div>
+        <div class="activity-item"><div class="activity-time">Aug 5, 6:05 AM</div><div class="activity-text"><b>Sensor warning</b> — Blueberry Farm, port 2 error, battery 18% <span class="to">→ jasmine.neupane@missouri.edu</span></div></div>
+        <div class="activity-item"><div class="activity-time">Jul 31, 6:05 AM</div><div class="activity-text"><b>Irrigation alert</b> — Lee Farm needs ≈1,050 L, run 1.8 hrs <span class="to">→ llgpp@missouri.edu, mr6dz@missouri.edu</span></div></div>
+        <div class="activity-item"><div class="activity-time">Jul 26, 6:05 AM</div><div class="activity-text"><b>Irrigation alert</b> — Vineyard needs ≈700 L, run 1.2 hrs <span class="to">→ jasmine.neupane@missouri.edu</span></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll('.nav-btn');
+  function showPage(name){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.page === name));
+  }
+  buttons.forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
+</script>
+
+</body>
+</html>
