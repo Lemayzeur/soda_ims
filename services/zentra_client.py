@@ -96,11 +96,7 @@ def _live_reading(logger, wanted_ports, start_date, end_date):
     water_content_list = data_block.get("Water Content", [])
     battery_list = data_block.get("Battery Percent", [])
 
-    entry = {
-        "serial_number": logger.serial_number, 
-        "battery_percent": None, 
-        "ports": []
-    }
+    entry = {"serial_number": logger.serial_number, "battery_percent": None, "ports": []}
 
     if battery_list:
         readings = battery_list[0].get("readings", [])
@@ -113,8 +109,7 @@ def _live_reading(logger, wanted_ports, start_date, end_date):
         port_num = reading_data["metadata"]["port_number"]
         if port_num not in wanted_ports:
             continue
-    
-        latest = max(reading_data["readings"], key=lambda x: x['timestamp_utc'])        
+        latest = max(reading_data["readings"], key=lambda x: x['timestamp_utc']) 
         if latest.get("error_flag"):
             entry["ports"].append({"port_number": port_num, "value": None, "error": True})
         else:

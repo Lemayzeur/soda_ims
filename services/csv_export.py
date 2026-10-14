@@ -9,13 +9,15 @@ def irrigation_logs_to_csv(logs):
         "num_ports_reporting", "num_ports_below_threshold", "num_ports_error",
         "trigger_threshold", "target_vwc", "soil_volume_m3", "system_flow_lps",
         "vwc_deficit", "liters_needed", "runtime_hours", "runtime_minutes",
-        "battery_percent",
+        "battery_percent", "raw_ports_json",  # <-- NEW: per-logger, per-port snapshot, needed for UAV correlation,
     ]
     writer = csv.DictWriter(output, fieldnames=fieldnames)
     writer.writeheader()
     for log in logs:
         d = log.to_dict()
-        writer.writerow({k: d.get(k, "") for k in fieldnames})
+        row = {k: d.get(k, "") for k in fieldnames if k != "raw_ports_json"}
+        row["raw_ports_json"] = log.raw_ports_json or ""  # raw string, not the parsed dict
+        writer.writerow(row)
     return output.getvalue()
 
 

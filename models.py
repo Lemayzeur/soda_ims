@@ -6,7 +6,6 @@ from services.tz_utils import utc_naive_to_local_iso, DEFAULT_TIMEZONE
 
 db = SQLAlchemy()
 
-
 class Field(db.Model):
     __tablename__ = "fields"
 
@@ -86,7 +85,6 @@ class Field(db.Model):
             data["loggers"] = [l.to_dict() for l in self.loggers]
         return data
 
-
 class Logger(db.Model):
     __tablename__ = "loggers"
 
@@ -114,7 +112,6 @@ class Logger(db.Model):
             "ports": self.get_ports(),
         }
 
-
 class AdminEmail(db.Model):
     __tablename__ = "admin_emails"
 
@@ -124,7 +121,6 @@ class AdminEmail(db.Model):
 
     def to_dict(self):
         return {"id": self.id, "email": self.email}
-
 
 class AlertLog(db.Model):
     __tablename__ = "alert_logs"
@@ -152,7 +148,6 @@ class AlertLog(db.Model):
             "created_at": self.created_at.isoformat(),
             "created_at_local": utc_naive_to_local_iso(self.created_at, tz_name),
         }
-
 
 class IrrigationLog(db.Model):
     __tablename__ = "irrigation_logs"

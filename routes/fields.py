@@ -1,17 +1,24 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from models import db, Field, Logger
+from services.tz_utils import local_naive_to_utc_naive, is_valid_timezone, DEFAULT_TIMEZONE
 
 fields_bp = Blueprint("fields", __name__, url_prefix="/api/fields")
 
 
-def _parse_start_date(value):
+def _parse_start_date_to_utc(value, tz_name):
+    """
+    value is expected as a naive "YYYY-MM-DDTHH:MM[:SS]" string — what
+    an <input type="datetime-local"> sends — representing wall-clock
+    time in tz_name. Converts it to naive UTC for storage.
+    """
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value)
+        naive_local = datetime.fromisoformat(value)
     except (TypeError, ValueError):
         return None
+    return local_naive_to_utc_naive(naive_local, tz_name)
 
 
 @fields_bp.get("")
@@ -29,6 +36,10 @@ def create_field():
     if Field.query.filter_by(name=name).first():
         return jsonify({"error": "a field with that name already exists"}), 409
 
+    timezone_name = data.get("timezone", DEFAULT_TIMEZONE)
+    if not is_valid_timezone(timezone_name):
+        return jsonify({"error": f"'{timezone_name}' is not a recognized timezone"}), 400
+
     field = Field(
         name=name,
         trigger_threshold=data.get("trigger_threshold", 0.229),
@@ -36,7 +47,8 @@ def create_field():
         soil_volume_m3=data.get("soil_volume_m3", 1.002),
         system_flow_lps=data.get("system_flow_lps", 0.00244),
         check_frequency_days=data.get("check_frequency_days", 5),
-        start_date=_parse_start_date(data.get("start_date")),
+        timezone=timezone_name,
+        start_date=_parse_start_date_to_utc(data.get("start_date"), timezone_name),
         latitude=data.get("latitude"),
         longitude=data.get("longitude"),
     )
@@ -63,13 +75,20 @@ def update_field(field_id):
             return jsonify({"error": "a field with that name already exists"}), 409
         field.name = new_name
 
+    if "timezone" in data:
+        if not is_valid_timezone(data["timezone"]):
+            return jsonify({"error": f"'{data['timezone']}' is not a recognized timezone"}), 400
+        field.timezone = data["timezone"]
+
     for attr in ["trigger_threshold", "target_vwc", "soil_volume_m3",
                  "system_flow_lps", "check_frequency_days", "latitude", "longitude"]:
         if attr in data:
             setattr(field, attr, data[attr])
 
+    # Parsed with field.timezone, which reflects the update above if
+    # timezone was included in the same request.
     if "start_date" in data:
-        field.start_date = _parse_start_date(data["start_date"])
+        field.start_date = _parse_start_date_to_utc(data["start_date"], field.timezone)
 
     db.session.commit()
     return jsonify(field.to_dict())

@@ -15,7 +15,7 @@ load_dotenv()
 ADMIN_EMAILS = [
     "llgpp@missouri.edu",
     "mr6dz@missouri.edu",
-    "jasmine.neupane@missouri.edu",
+    # "jasmine.neupane@missouri.edu",
 ]
  
 FIELD_NAME = "Vineyard Farm"
@@ -279,11 +279,11 @@ for index, log_data in enumerate(LOGGERS):
     
     params = {
         "device_sn": logger_sn,
-        "start_date": START_DATE.strftime("%Y-%m-%d %H:%M"),
+        "start_date": START_DATE.strftime("%Y-%m-%d %H:%M:%S"),
         "location": "true",
     }
     if END_DATE:
-        params["end_date"] = END_DATE.strftime("%Y-%m-%d %H:%M")
+        params["end_date"] = END_DATE.strftime("%Y-%m-%d %H:%M:%S")
 
     try:
         response = requests.get(url, headers=headers, params=params)
@@ -341,9 +341,6 @@ for index, log_data in enumerate(LOGGERS):
                 # if the port number is not included in targeted ports, pass
                 if port_num not in ports:
                     continue 
-
-                print(reading_data["readings"][0])
-                print(reading_data["readings"][-1])
                 
                 latest_reading = reading_data["readings"][0]
                 

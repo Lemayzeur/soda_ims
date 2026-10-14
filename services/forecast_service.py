@@ -13,7 +13,7 @@ def get_forecast_template(field):
     NOAA NDFD) using field.latitude / field.longitude. Keep the same
     response shape so the frontend doesn't need to change.
     """
-    today = datetime.utcnow()
+    today = datetime.now()
     days = []
     for i in range(7):
         day = today + timedelta(days=i)

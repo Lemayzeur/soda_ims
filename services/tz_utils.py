@@ -23,18 +23,6 @@ COMMON_TIMEZONES = [
     "America/Denver",
     "America/Phoenix",
     "America/Los_Angeles",
-    "America/Anchorage",
-    "Pacific/Honolulu",
-    "America/Sao_Paulo",
-    "Europe/London",
-    "Europe/Berlin",
-    "Europe/Madrid",
-    "Africa/Cairo",
-    "Asia/Dubai",
-    "Asia/Kolkata",
-    "Asia/Shanghai",
-    "Asia/Tokyo",
-    "Australia/Sydney",
 ]
 
 

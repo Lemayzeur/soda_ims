@@ -4,13 +4,14 @@ from email.mime.text import MIMEText
 from flask import current_app
 
 
-def send_irrigation_alert_email(field, evaluation, logger_readings, admin_emails):
+def send_irrigation_alert_email(field, evaluation, logger_readings, admin_emails, timestamp):
     subject = (
         f"[SoDA Alert] {field.name} needs irrigation — "
         f"{evaluation['runtime_hours']}h {evaluation['runtime_minutes']}m"
     )
     body = f"""Irrigation Alert — {field.name}
 
+Date/Time checked: {timestamp.strftime("%A, %B %d, %Y %I:%M %p")}
 Average soil moisture (VWC): {evaluation['average_vwc']} m3/m3
 Trigger threshold: {field.trigger_threshold} m3/m3
 Ports below threshold: {evaluation['num_ports_below_threshold']} of {evaluation['num_ports_reporting']}
@@ -76,7 +77,7 @@ def _format_readings_block(logger_readings, threshold):
             if p["error"] or p["value"] is None:
                 lines.append(f"  Port #{p['port_number']}: SENSOR ERROR")
             else:
-                flag = " (below threshold)" if p["value"] < threshold else ""
+                flag = " (⚠️ BELOW THRESHOLD)" if p["value"] < threshold else ""
                 lines.append(f"  Port #{p['port_number']}: {p['value']} m3/m3{flag}")
         lines.append("")
     return "\n".join(lines)

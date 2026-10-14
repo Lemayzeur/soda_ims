@@ -48,7 +48,7 @@ def run_check_for_field(field):
             f"{evaluation['runtime_hours']}h {evaluation['runtime_minutes']}m "
             f"({evaluation['num_ports_below_threshold']} of {evaluation['num_ports_reporting']} ports below threshold)."
         )
-        sent = send_irrigation_alert_email(field, evaluation, logger_readings, admin_emails)
+        sent = send_irrigation_alert_email(field, evaluation, logger_readings, admin_emails, end_date)
         db.session.add(AlertLog(
             field_id=field.id,
             alert_type="IRRIGATION",

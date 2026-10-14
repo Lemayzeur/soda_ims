@@ -6,7 +6,7 @@ dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 
 @dashboard_bp.get("")
 def get_dashboard():
-    fields = Field.query.order_by(Field.name).all()
+    fields = Field.query.order_by(Field.created_at).all()
     rows = []
     needs_water = 0
     ok_count = 0
