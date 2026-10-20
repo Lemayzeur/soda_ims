@@ -13,6 +13,7 @@ from routes.alerts import alerts_bp
 from routes.forecast import forecast_bp
 from routes.export import export_bp
 from routes.meta import meta_bp
+from routes.api import api_bp
 
 
 def create_app():
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(forecast_bp)
     app.register_blueprint(export_bp)
     app.register_blueprint(meta_bp)
+    app.register_blueprint(api_bp)
 
     with app.app_context():
         db.create_all()
