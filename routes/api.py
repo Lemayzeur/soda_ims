@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from models import Field, IrrigationLog
 from datetime import datetime, timezone
+from services.checker import run_check_for_field, run_check_for_all_fields
 
 from random import randrange
 
@@ -14,7 +15,29 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 # --------------------------------------------------
 @api_bp.get("/next")
 def next_data():
-    device_id = request.args.get("device_id", "unknown")
+    field_id_arg = request.args.get("field_id")
+
+    if field_id_arg is not None:
+        try:
+            int(field_id_arg)
+        except ValueError:
+            return jsonify({"error": "field_id must be an integer."}), 400
+        
+        field = Field.query.get_or_404(field_id_arg)
+
+    log = run_check_for_field(field)
+
+    if log.decision != "IRRIGATED":
+        return
+
+    
+
+
+    
+
+
+    DEFAULT_DEVICE_ID = "soda-uno-r4"
+    device_id = request.args.get("device_id", DEFAULT_DEVICE_ID).strip()
 
     command = {
         "id": "soda-test-pot2-" + str(randrange(100, 500)),
