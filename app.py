@@ -15,6 +15,8 @@ from routes.export import export_bp
 from routes.meta import meta_bp
 from routes.api import api_bp
 
+from migrations.database_migrations import run_migrations
+
 
 def create_app():
     app = Flask(__name__)
@@ -35,6 +37,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        run_migrations(db)
         seed_if_empty()
 
     @app.route("/")

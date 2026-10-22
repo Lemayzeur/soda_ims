@@ -30,6 +30,9 @@ class Field(db.Model):
     longitude = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # to know whether to evaluate all the ports in once, or individually
+    evaluation_mode = db.Column(db.String(30), nullable=False, default="section_average") # section_average OR individual_port
+    
     loggers = db.relationship(
         "Logger", backref="field", cascade="all, delete-orphan", lazy=True
     )
@@ -39,6 +42,7 @@ class Field(db.Model):
     alerts = db.relationship(
         "AlertLog", backref="field", cascade="all, delete-orphan", lazy=True
     )
+    
 
     def next_check_due(self):
         """
@@ -66,6 +70,7 @@ class Field(db.Model):
         data = {
             "id": self.id,
             "name": self.name,
+            "evaluation_mode": self.evaluation_mode,
             "trigger_threshold": self.trigger_threshold,
             "target_vwc": self.target_vwc,
             "soil_volume_m3": self.soil_volume_m3,
@@ -93,6 +98,7 @@ class Logger(db.Model):
     serial_number = db.Column(db.String(60), nullable=False)
     port_mode = db.Column(db.String(10), nullable=False, default="include")  # include|exclude
     ports = db.Column(db.Text, nullable=False, default="[]")  # JSON list of ints
+    port_map = db.Column(db.JSON, nullable=True, default=dict)
 
     def get_ports(self):
         try:
@@ -170,8 +176,22 @@ class IrrigationLog(db.Model):
     liters_needed = db.Column(db.Float, nullable=True)
     runtime_hours = db.Column(db.Integer, nullable=True)
     runtime_minutes = db.Column(db.Integer, nullable=True)
+    runtime_seconds = db.Column(db.Integer, nullable=True)
     battery_percent = db.Column(db.Float, nullable=True)
     raw_ports_json = db.Column(db.Text, nullable=True)  # JSON snapshot of per-port readings
+
+    command_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    pot_number = db.Column(db.Integer, nullable=True)
+    valve = db.Column(db.Integer, nullable=True)
+
+    execution_status = db.Column(
+        db.String(30), nullable=True, default="pending"
+    )
+    execution_message = db.Column(db.String(255), nullable=True)
+    execution_started_at = db.Column(db.DateTime, nullable=True)
+    execution_completed_at = db.Column(db.DateTime, nullable=True)
+
+    actual_liters = db.Column(db.Float, nullable=True)
 
     def to_dict(self):
         raw_ports = []
